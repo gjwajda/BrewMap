@@ -11,6 +11,14 @@
         
         #map {
             height: 100%;
+            width: 50%;
+            float: left;
+        }
+        
+        #map_sidebar {
+            height: 100%;
+            float: right;
+            width: 50%;
         }
         /* Optional: Makes the sample page fill the window. */
         
@@ -24,25 +32,29 @@
 </head>
 
 <body>
-    <div class="page-header full-content" id="page_header">
-        <div class="row">
-            <div class="col-xs-6 col-sm-8">
-                <h1 id="page_title">Brewmap <small id="page_title_description">Info about your local brewerys</small></h1>
-            </div>
-            <!--.col-->
-            <!--<div class="col-xs-6 col-sm-4">
-                <ol class="header-links" id="header_account_links">
-                    <li><a title="Login to Trendsmap" id="login_link" href="/auth">Login</a></li>
-                    <li><a title="Register for Trendsmap" id="register_link" href="/register">Register</a></li>
-                    <li><i title="Search for a trend or location" class="fa fa-search top-search-icon" aria-hidden="true"></i></li>
-                </ol>
-            </div>-->
+    <header id="header">
+        <div class="container">
+            <h1>
+                Brewmap
+            </h1>
+            <nav id="nav">
+                <ul>
+                    <li>
+                        <a href="#">Home</a>
+                    </li>
+                </ul>
+            </nav>
         </div>
+    </header>
+
+    <div id="map">
+        <script type="text/javascript" src="brewmap.js"></script>
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC9JsezK4dNu_-N1jQL0IGTdPTWd4bzG2o&callback=initMap"></script>
     </div>
 
-    <div id="map"></div>
-    <script type="text/javascript" src="brewmap.js"></script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC9JsezK4dNu_-N1jQL0IGTdPTWd4bzG2o&callback=initMap"></script>
+    <div id="map_sidebar">
+        side bar
+    </div>
 </body>
 
 </html>
