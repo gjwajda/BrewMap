@@ -1,33 +1,45 @@
-var map;
-var map_markers = [];
-// var info_markers = [];
+var map; //Global brew map
+var map_markers = []; //Array of map markers
+
 
 //Reads local file to be parsed
-function readTextFile(file, callback) {
-    var rawFile = new XMLHttpRequest();
-    rawFile.overrideMimeType("application/json");
-    rawFile.open("GET", file, true);
-    rawFile.onreadystatechange = function() {
-        if (rawFile.readyState === 4 && rawFile.status == "200") {
-            callback(rawFile.responseText);
-        }
-    }
-    rawFile.send(null);
-}
+// function readTextFile(file, callback) {
+//     var rawFile = new XMLHttpRequest();
+//     rawFile.overrideMimeType("application/json");
+//     rawFile.open("GET", file, true);
+//     rawFile.onreadystatechange = function() {
+//         if (rawFile.readyState === 4 && rawFile.status == "200") {
+//             callback(rawFile.responseText);
+//         }
+//     }
+//     rawFile.send(null);
+// }
 
-//Mark the breweries on the map
+
+
+// Create map markers for each brewery in given response data
+// Input: response - json file with info on breweries
+// Output: None
 function markbrewery(response) {
-    var brew_data = response["data"];
-    var i;
+    var brew_data = response["data"]; //Data with brewery info
+    var infowindow = new google.maps.InfoWindow; //Initialze info window to be displayed onclick
 
-    var infowindow = new google.maps.InfoWindow;
+    //Iterate through every brewery on the page
+    var i;
     for (i = 0; i < brew_data.length; i++) {
+        //Create map marker using parsed latitude, longitude, and brewery name
         var marker = new google.maps.Marker({
             position: { lat: brew_data[i]["latitude"], lng: brew_data[i]["longitude"] },
             map: map,
             title: brew_data[i]["brewery"]["name"]
         });
-        map_markers.push(marker);
+        map_markers.push(marker); //push map marker to array
+
+        //Create click event to display,
+        //  Brewery name
+        //  Address
+        //  Phone number
+        //  Website url
         google.maps.event.addListener(marker, 'click', (function(marker, i) {
             return function() {
                 infowindow.setContent("<p>" + brew_data[i]["brewery"]["name"] + "<br />" +
@@ -43,10 +55,16 @@ function markbrewery(response) {
     }
 }
 
+
+
+// Sends an asynchronous GET request to given url
+// Input: theUrl - the url to send the GET request to
+// Output: None
 function httpGetAsync(theUrl) {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() {
         if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+            // Use GET response to create map markers  
             markbrewery(JSON.parse(xmlHttp.responseText));
         }
     }
@@ -54,7 +72,11 @@ function httpGetAsync(theUrl) {
     xmlHttp.send();
 }
 
-//Initialize Google Map API
+
+
+// Initialize Google Map API
+// Input: None
+// Output: None
 function initMap() {
     // Styles a map
     map = new google.maps.Map(document.getElementById('map'), {
@@ -240,18 +262,20 @@ function initMap() {
             }
         ]
     });
-    var curr_page = 1;
-    var num_pages = 1;
-    var url = "http://api.brewerydb.com/v2/locations/?p=" + curr_page.toString() + "&region=Illinois&key=481d514448fd7365873ba9501d928e10&format=json";
+
+    var curr_page = 1; //Current page of GET response
+    var num_pages = 1; //Initialize number of pages response has
+    var url = "http://api.brewerydb.com/v2/locations/?p=" + curr_page.toString() + "&region=Illinois&key=481d514448fd7365873ba9501d928e10&format=json"; //URL to get breweries in Illinois
 
     // Request first page of info
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() {
         if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-            var response = JSON.parse(xmlHttp.responseText);
-            num_pages = response["numberOfPages"];
-            markbrewery(response);
+            var response = JSON.parse(xmlHttp.responseText); //Parse json response
+            num_pages = response["numberOfPages"]; //Set number of pages response has
+            markbrewery(response); //Mark first page of response
 
+            //Request and mark each page of response 
             for (curr_page = 2; curr_page <= num_pages; curr_page++) {
                 url = "http://api.brewerydb.com/v2/locations/?p=" + curr_page.toString() + "&region=Illinois&key=481d514448fd7365873ba9501d928e10&format=json";
                 httpGetAsync(url);
@@ -261,23 +285,3 @@ function initMap() {
     xmlHttp.open("GET", url, true); // true for asynchronous 
     xmlHttp.send();
 }
-
-
-// function geocodeAddress(geocoder, resultsMap) {
-//     var address = "1800 N Clybourn Ave, Chicago, IL";
-//     geocoder.geocode({ 'address': address }, function(results, status) {
-//         if (status === 'OK') {
-//             var marker = new google.maps.Marker({
-//                 map: resultsMap,
-//                 position: results[0].geometry.location
-//             });
-
-//             marker.addListener('click', function() {
-//                 map.setZoom(8);
-//                 map.setCenter(marker.getPosition());
-//             });
-//         } else {
-//             alert('Geocode was not successful for the following reason: ' + status);
-//         }
-//     });
-// }
