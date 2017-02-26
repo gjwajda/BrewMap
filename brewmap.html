@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 
+<link rel="stylesheet" href="https://www.w3schools.com/lib/w3.css">
+
 <head>
     <title>Brewmap</title>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
@@ -11,16 +13,31 @@
         
         #map {
             height: 100%;
-            width: 50%;
+            width: 70%;
             float: left;
         }
         
         #map_sidebar {
             height: 100%;
+            width: 30%;
             float: right;
-            width: 50%;
         }
+        
+        #brewinfo {
+            width: 96%;
+            height: 300px;
+            background: gray;
+            margin: 2%;
+        }
+        /*#nav {
+            height: 100%;
+            float: right;
+        }*/
         /* Optional: Makes the sample page fill the window. */
+        
+        h1 {
+            font-size: 36px
+        }
         
         html,
         body {
@@ -29,10 +46,13 @@
             padding: 0;
         }
     </style>
+    <script src="jquery-3.1.1.min.js"></script>
 </head>
 
 <body>
-    <header id="header">
+    <!--<script type="text/javascript" src="brew_il.json"></script>-->
+
+    <header id="header" class="w3 container w3-teal">
         <div class="container">
             <h1>
                 Brewmap
@@ -52,8 +72,10 @@
         <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC9JsezK4dNu_-N1jQL0IGTdPTWd4bzG2o&callback=initMap"></script>
     </div>
 
-    <div id="map_sidebar">
-        side bar
+    <div id="map_sidebar" class="w3 container w3-teal">
+        <div id="brewinfo">
+            Brewery info goes here!
+        </div>
     </div>
 </body>
 

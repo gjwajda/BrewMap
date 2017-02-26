@@ -1,41 +1,63 @@
-var brewery_markers = new Array; //List of brewery info
+var map;
+var map_markers = [];
+// var info_markers = [];
+
+//Reads local file to be parsed
+function readTextFile(file, callback) {
+    var rawFile = new XMLHttpRequest();
+    rawFile.overrideMimeType("application/json");
+    rawFile.open("GET", file, true);
+    rawFile.onreadystatechange = function() {
+        if (rawFile.readyState === 4 && rawFile.status == "200") {
+            callback(rawFile.responseText);
+        }
+    }
+    rawFile.send(null);
+}
 
 //Mark the breweries on the map
-function markbrewery(arr) {
+function markbrewery(response) {
+    var brew_data = response["data"];
     var i;
-    for (i = 0; i < arr.length; i++) {
+
+    var infowindow = new google.maps.InfoWindow;
+    for (i = 0; i < brew_data.length; i++) {
         var marker = new google.maps.Marker({
-            position: { lat: arr[i].latitude, lng: arr[i].longitude },
+            position: { lat: brew_data[i]["latitude"], lng: brew_data[i]["longitude"] },
             map: map,
-            title: 'Hello World!'
+            title: brew_data[i]["brewery"]["name"]
         });
-        brewery_markers.push(marker);
+        map_markers.push(marker);
+        google.maps.event.addListener(marker, 'click', (function(marker, i) {
+            return function() {
+                infowindow.setContent("<p>" + brew_data[i]["brewery"]["name"] + "<br />" +
+                    brew_data[i]["streetAddress"] + "<br />" +
+                    brew_data[i]["locality"] + ", " + brew_data[i]["region"] + " " + brew_data[i]["postalCode"] +
+                    "<br /><br />" +
+                    "Phone: " + brew_data[i]["phone"] + "<br />" +
+                    "Website: " + brew_data[i]["brewery"]["website"] + "<br />" +
+                    "</p>");
+                infowindow.open(map, marker);
+            }
+        })(marker, i));
     }
-    document.getElementById("id01").innerHTML = out;
-
-
 }
 
-//Get Brewery info from the API
-function get_breweries() {
-    var xmlhttp = new XMLHttpRequest();
-    var url = "http://api.brewerydb.com/v2/?key=481d514448fd7365873ba9501d928e10/locations";
-
-    xmlhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-            var myArr = JSON.parse(this.responseText);
-            markbrewery(myArr);
+function httpGetAsync(theUrl) {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() {
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+            markbrewery(JSON.parse(xmlHttp.responseText));
         }
-    };
-    xmlhttp.open("GET", url, true);
-    xmlhttp.send();
+    }
+    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+    xmlHttp.send();
 }
-
 
 //Initialize Google Map API
 function initMap() {
-    // Styles a map in night mode.
-    var map = new google.maps.Map(document.getElementById('map'), {
+    // Styles a map
+    map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 41.878, lng: -87.629 },
         zoom: 8,
         styles: [{
@@ -218,40 +240,44 @@ function initMap() {
             }
         ]
     });
+    var curr_page = 1;
+    var num_pages = 1;
+    var url = "http://api.brewerydb.com/v2/locations/?p=" + curr_page.toString() + "&region=Illinois&key=481d514448fd7365873ba9501d928e10&format=json";
 
-    // get_breweries();
-    var geocoder = new google.maps.Geocoder();
-    geocodeAddress(geocoder, map);
-    // var xmlhttp = new XMLHttpRequest();
-    // var url = "https://maps.googleapis.com/maps/api/geocode/json?address=1800+N+Clybourn+Ave,+Chicago,+IL&key=AIzaSyC9JsezK4dNu_-N1jQL0IGTdPTWd4bzG2o";
+    // Request first page of info
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() {
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+            var response = JSON.parse(xmlHttp.responseText);
+            num_pages = response["numberOfPages"];
+            markbrewery(response);
 
-    // xmlhttp.onreadystatechange = function() {
-    //     if (this.readyState == 4 && this.status == 200) {
-    //         var coord = JSON.parse(this.responseText);
-
-    //         var marker = new google.maps.Marker({
-    //             position: coord.results[0].geometry.location,
-    //             map: map,
-    //             title: 'Goose Island'
-
-    //         });
-    //     }
-    // };
-    // xmlhttp.open("GET", url, true);
-    // xmlhttp.send();
-}
-
-
-function geocodeAddress(geocoder, resultsMap) {
-    var address = "1800 N Clybourn Ave, Chicago, IL";
-    geocoder.geocode({ 'address': address }, function(results, status) {
-        if (status === 'OK') {
-            var marker = new google.maps.Marker({
-                map: resultsMap,
-                position: results[0].geometry.location
-            });
-        } else {
-            alert('Geocode was not successful for the following reason: ' + status);
+            for (curr_page = 2; curr_page <= num_pages; curr_page++) {
+                url = "http://api.brewerydb.com/v2/locations/?p=" + curr_page.toString() + "&region=Illinois&key=481d514448fd7365873ba9501d928e10&format=json";
+                httpGetAsync(url);
+            }
         }
-    });
+    }
+    xmlHttp.open("GET", url, true); // true for asynchronous 
+    xmlHttp.send();
 }
+
+
+// function geocodeAddress(geocoder, resultsMap) {
+//     var address = "1800 N Clybourn Ave, Chicago, IL";
+//     geocoder.geocode({ 'address': address }, function(results, status) {
+//         if (status === 'OK') {
+//             var marker = new google.maps.Marker({
+//                 map: resultsMap,
+//                 position: results[0].geometry.location
+//             });
+
+//             marker.addListener('click', function() {
+//                 map.setZoom(8);
+//                 map.setCenter(marker.getPosition());
+//             });
+//         } else {
+//             alert('Geocode was not successful for the following reason: ' + status);
+//         }
+//     });
+// }
