@@ -1,7 +1,9 @@
 # BrewMap
 BreweryDB and Google Maps mashup
+
 http://www.brewerydb.com/developers/docs
 https://developers.google.com/maps/documentation/javascript/
+
 Author: Greg Wajda
 
 
